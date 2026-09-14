@@ -1,11 +1,12 @@
 import streamlit as st
 
-# --- НАСТРОЙКО ПАРАМЕТРОВ СТРАНИЦЫ ---
+# --- НАСТРОЙКА СТРАНИЦЫ ---
 st.set_page_config(page_title="Скрипт продаж: ЭВО", layout="centered")
 
-# --- ИНИЦИАЛИЗАЦИЯ СОСТОЯНИЯ (State Machine) ---
+# --- ИНИЦИАЛИЗАЦИЯ СОСТОЯНИЯ ---
 ## if 'step' not in st.session_state:
     st.session_state.step = 'contact'
+
 ## if 'client_info' not in st.session_state:
     st.session_state.client_info = {
         'has_competitor': False,
@@ -17,7 +18,7 @@ st.set_page_config(page_title="Скрипт продаж: ЭВО", layout="cente
     st.session_state.step = 'contact'
     st.session_state.client_info = {'has_competitor': False, 'pain': None, 'price': 0}
 
-# --- СТИЛИЗАЦИЯ (CSS) ---
+# --- СТИЛИЗАЦИЯ ---
 st.markdown("""
     <style>
     .step-indicator {
@@ -59,7 +60,7 @@ st.markdown("""
     st.write(f"Провайдер: {'Конкурент' if st.session_state.client_info['has_competitor'] else 'Нет'}")
     st.write(f"Текущая цена: {st.session_state.client_info['price']} руб.")
 
-# --- ЛОГИКА ЭТАПОВ ---
+# --- ОСНОВНОЙ КОНТЕНТ ---
 
 # ЭТАП 1: КОНТАКТ
 ## if st.session_state.step == 'contact':
@@ -79,7 +80,7 @@ st.markdown("""
         ## if st.button("✅ Согласен"):
             st.session_state.step = 'audit'
             st.rerun()
-    ## with col2:
+    ## with colint2 := col2:
         ## if st.button("❌ Уже есть провайдер"):
             st.session_state.client_info['has_competitor'] = True
             st.session_state.step = 'audit'
@@ -89,7 +90,7 @@ st.markdown("""
 ## elif st.session_state.step == 'audit':
     st.markdown("<div class='step-indicator'>Этап 2: Аудит потребностей</div>", unsafe_allow_html=True)
     
-    intro = "Это отлично, без интернета сейчас никуда. А пользуетесь Ростелекомом, МИТС, Билайн или Дом.ру? " if st.session_state.client_info['has_competitor'] else ""
+    intro = "Это отлично, без интернета сейчас никуда. А пользуетесь Ростелекомом, МТС, Билайн или Дом.ру? " if st.session_state.client_info['has_competitor'] else ""
     
     m_text = f"""
     <div class='manager-box'>
@@ -112,7 +113,7 @@ st.markdown("""
 
 # ЭТАП 3: ПРЕЗЕНТАЦИЯ
 ## elif st.session_state.step == 'presentation':
-    st.markdown("<div class='step-indicator'>Этап 3: Презенкация решения</div>", unsafe_allow_html=True)
+    st.markdown("<div class='step-indicator'>Этап 3: Презентация решения</div>", unsafe_allow_html=True)
     
     pain_map = {
         "Нет проблем": "стабильность связи",
@@ -161,4 +162,11 @@ st.markdown("""
     m_text = """
     <div class='manager-box'>
         <strong>🎙 Менеджер:</strong><br>
-        Договорились! В течение 3 дней мастер приедет, всё настроит.
+        Договорились! В течение 3 рабочих дней мастер приедет, всё настроит. 
+        Кстати, пока мастер будет у вас, мы можем бесплатно выдать сим-карту на пробу. Привезти её вместе с договором?<br><br>
+        <strong>Важно:</strong> Для оформления нужен паспорт. Оплата через ЛК или Сбербанк Онлайн.
+    </div>
+    """
+    st.markdown(m_text, unsafe_allow_html=True)
+    
+    st.success("🎉 Сделка успешно закры
