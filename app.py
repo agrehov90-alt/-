@@ -1,215 +1,184 @@
 import streamlit as st
 
-# --- НАСТРОЙКА СТРАНИЦЫ ---
-st.set_page_config(page_title="Скрипт продаж: ЭВО", layout="centered")
+# --- НАСТРОЙ (PAGE CONFIG) ---
+st.set_page_config(page_title="Интерактивный скрипт продаж: ЭВО", layout="wide")
 
-# --- ИНИЦИАЛИЗАЦИЯ СОСТОЯНИЯ ---
-if 'step' not in st.session_state:
-    st.session_state.step = 'contact'
-
-if 'client_info' not in st.session_state:
-    st.session_state.client_info = {
-        'has_competitor': False,
-        'pain_type': None,
-        'current_price': 0,
+# --- ИНИЦИАЛИЗАЦИЯ СОСТОЯНИЯ (SESSION STATE) ---
+## if 'step' not in st.session_state:
+    st.session_state.step = 'step1'
+## if 'client_data' not in st.session_state:
+    st.session_state.client_data = {
+        'competitor': '',
+        'price': '',
+        'pain': '',
         'cross_sell': False
     }
 
-def reset_script():
-    st.session_state.step = 'contact'
-    st.session_state.client_info = {
-        'has_competitor': False,
-        'pain_type': None,
-        'current_price': 0,
-        'cross_sell': False
-    }
+## def reset_app():
+    st.session_state.step = 'step1'
+    st.session_state.client_data = {'competitor': '', 'price': '', 'pain': '', 'cross_sell': False}
 
-# --- СТИЛИЗАЦИЯ ---
+# --- СТИЛИЗАЦИЯ (CSS) ---
 st.markdown("""
     <style>
-    .step-header {
-        font-size: 24px; font-weight: bold; color: #1E88E5;
-        margin-bottom: 20px; border-bottom: 2px solid #1E88E5;
+    .main { background-color: #f5f5f5; }
+    .manager-box {
+        background-color: #e3f2fd;
+        padding: 20px;
+        border-left: 10px solid #2196f3;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        font-size: 18px;
+        color: #0d47a1;
     }
-    .manager-msg {
-        padding: 15px; background-color: #E3F2FD;
-        border-left: 5px solid #2196F3; border-radius: 5px;
-        margin-bottom: 15px; font-size: 16px; color: #0D47A1;
+    .client-box {
+        background-color: #f1f8e9;
+        padding: 20px;
+        border-left: 10px solid #4caf50;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        font-size: 18px;
+        color: #1b5e20;
     }
-    .client-msg {
-        padding: 15px; background-color: #F1F8E9;
-        border-left: 5px solid #4CAF50; border-radius: 5px;
-        margin-bottom: 15px; font-size: 16px; color: #1B5E20;
+    .instruction-box {
+        background-color: #fff3e0;
+        padding: 15px;
+        border: 1px solid #ffb74d;
+                border-radius: 5px;
+        margin-bottom: 20px;
+        font-style: italic;
     }
-    .info-box {
-        padding: 10px; background-color: #FFF3E0;
-        border: 1px solid #FFB74D; border-radius: 5/px; margin-bottom: 20px;
+    .step-title {
+        color: #1e88e5;
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 10px;
     }
     </style>
 """, unsafe_allow_html=True)
 
 # --- SIDEBAR ---
-with st.sidebar:
-    st.title("📊 Прогресс звонка")
-    st.write(f"**Текущий этап:** {st.session_state.step.upper()}")
-    st.divider()
-    if st.button("🔄 Сбросить звонок"):
-        reset_script()
+## with st.sidebar:
+    st.title("Управление скриптом")
+    st.info("Используйте кнопки ниже, чтобы переходить по веткам диалога.")
+    ## if st.button("🔄 Начать заново"):
+        reset_app()
         st.rerun()
-    
-    st.subheader("Данные клиента")
-    st.write(f"Провайдер: {'Конкурент' if st.session_state.client_info['has_competitor'] else 'Новый'}")
-    st.write(f"Текущая цена: {st.session_state.client_info['current_price']} руб.")
+    st.divider()
+    st.subheader("Данные звонка")
+    st.write(f"**Этап:** {st.session_state.step}")
 
-# --- ЛОГИКА ЭКРАНОВ ---
+# --- ОСНОВНОЙ КОНТЕНТ ---
 
-# 1. УСТАНОВЛЕНИЕ КОНТАКТА
-if st.session_state.step == 'contact':
-    st.markdown("<div class='step-header'>1. Контакт и Крючок</div>", unsafe_allow_html=True)
+# ШАГ 1: УСТАНОВЛЕНИЕ КОНТАКТА
+## if st.session_state.step == 'step1':
+    st.markdown("<div class='step-title'>1. Установление контакта и Крючок</div>", unsafe_allow_html=True)
     
     st.markdown("""
-    <div class='manager-msg'>
-        <b>🎙 Менеджер:</b><br>
-        Здравствуйте! Мы проводим модернизацию сети в Ульяновской области. 
-        Задам два технических вопроса, чтобы проверить стабильность связи и предложить тариф. Хорошо?
+    <div class='manager-box'>
+        <b>Менеджер:</b> Здравствуйте! [Имя клиента]<br><br>
+        <b>Менеджер (Вариативный инфоповод):</b> Меня зовут [Имя менеджера], компания ЭВО — наш местный городской провайдер связи. [Имя клиента], звоню буквально на полторы минуты. Мы сейчас проводим плановую модернизацию сети и обновление оборудования по Ульяновской области.<br><br>
+        <b>Менеджер (Программирование):</b> Задам буквально два технических вопроса, чтобы проверить, стабильно ли у вас работают услуги связи, и предложу наш готовый тариф для вашего дома. Хорошо?
     </div>
     """, unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
-    with col1:
-        if st.button("✅ Да, давайте"):
-            st.session_state.step = 'audit'
+    ## with col1:
+        ## if st.button("✅ Клиент согласен (Да/Ну давайте)"):
+            st.session_state.step = 'step2'
             st.rerun()
-    with col2:
-        if st.button("❌ Уже есть провайдер"):
-            st.session_state.client_info['has_competitor'] = True
-            st.session_state.step = 'audit'
+    ## with col2:
+        ## if st.button("❌ Клиент: 'Я уже пользуюсь другим провайдером'"):
+            st.session_state.client_data['competitor'] = "Другой провайдер"
+            st.session_state.step = 'step2_alt'
             st.rerun()
 
-# 2. АУДИТ
-elif st.session_state.step == 'audit':
-    st.markdown("<div class='step-header'>2. Профессиональный аудит</div>", unsafe_allow_html=True)
+# ШАГ 2 (Вариант А): АУДИТ (Если согласен сразу)
+## elif st.session_state.step == 'step2':
+    st.markdown("<div class='step-title'>2. Профессиональный аудит</div>", unsafe_allowting=True)
     
-    if st.session_state.client_info['has_competitor']:
-        st.markdown("""
-        <div class='client-msg'>
-            <b>👤 Клиент:</b><br>
-            Да, пользуюсь Ростелекомом.
-        </div>
-        <div class='manager-msg'>
-            <b>🎙 Менеджер:</b><br>
-            Это отлично, без интернета сейчас никуда. А сколько сейчас в месяц суммарно уходит?
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        st.markdown("""
-        <div class='manager-msg'>
-            <b>🎙 Менеджер:</b><br>
-            Подскажите, сейчас каким провайдером пользуетесь? И сколько в месяц уходит?
-        </div>
-        """, unsafe_allow_html=True)
-
-    price_input = st.number_input("Текущая цена (руб):", min_value=0, value=850)
-    st.session_state.client_info['current_price'] = price_input
-
-    st.write("**Выявление боли (выберите реакцию клиента):**")
-    pain_choice = st.radio("Реакция клиента:", ["Все работает отлично", "Да, вечером тормозит", "Часто пропадает связь"])
+    st.markdown("""
+    <div class='manager-box'>
+        <b>Менеджер:</b> Подскажите, пожалуйста, сейчас дома интернетом от какого провайдера пользуетесь? Ростелеком, Дом.ру, МТС или Билайн? Интернет с ТВ или по отдельности?
+    </div>
+    """, unsafe_allow_html=True)
     
-    if st.button("Перейти к презентации"):
-        st.session_state.client_info['pain_type'] = pain_choice
-        st.session_state.step = 'presentation'
+    comp = st.text_input("Введите название конкурента:", value=st.session_state.client_data['competitor'])
+    st.session_state.client_data['competitor'] = comp
+    
+    price = st.text_input("Сколько сейчас в месяц уходит (руб)?", value=st.sessionint_data['price'])
+    st.session_state.client_data['price'] = price
+
+    st.write("**Реакция на качество связи:**")
+    pain_col1, pain_col2 = st.columns(2)
+    ## with pain_col1:
+        ## if st.button("🔴 Есть боли (подтупливает вечером)"):
+            st.session_state.client_data['pain'] = 'pain_yes'
+            st.session_state.step = 'step2_finish'
+            st.rerun()
+    ## with pain_col2:
+        ## if st.button("🟢 Нет болей (все нормально)"):
+            st.session_state.client_data['pain'] = 'pain_no'
+            st.session_state.step = 'step2_finish'
+            st.rerun()
+
+# ШАГ 2 (Вариант Б): АУДИТ (Если уже есть другой провайдер)
+## elif st.session_state.step == 'step2_alt':
+    st.markdown("<div class='step-margin'>2. Отработка сопротивления и Аудит</div>", unsafe_allow_html=True)
+    
+    st.markdown(f"""
+    <div class='manager-box'>
+        <b>Менеджер:</b> Это отлично, без интернета сейчас никуда. А пользуетесь Ростелекомом, МТС, Билайн или Дом.ру? Просто мы — местная городская компания, и сейчас переключаем жителей вашего дома на наше новое оборудование по сниженной цене, чтобы вы не переплачивали за архивные тарифы гигантов. Сколько сейчас в месяц отдаете?
+    </div>
+    """, unsafe_allow_html=True)
+    
+    comp = st.text_input("Название конкурента:", value=st.session_state.client_data['competitor'])
+    price = st.text_input("Сколько платите сейчас (руб):", value=st.session_state.client_data['price'])
+    
+    ## if st.button("Далее к проверке качества"):
+        st.session_state.client_data['competitor'] = comp
+        st.session_state.client_data['price'] = price
+        st.session_state.step = 'step2_finish'
         st.rerun()
 
-# 3. ПРЕЗЕНТАЦИЯ
-elif st.session_state.step == 'presentation':
-    st.markdown("<div class='step-header'>3. Презентация решения</div>", unsafe_allow_html=True)
+# ЗАВЕРШЕНИЕ АУДИТА (Сбор всех данных воедино)
+## elif st.session_state.step == 'step2_finish':
+    st.markdown("<div class='step-title'>2. Фиксация и Спрос</div>", unsafe_allow_html=
+    True)
     
-    pain = st.session_state.client_info['pain_type']
-    old_p = st.session_state.client_info['current_price']
-    
-    # Логика подмены текста в зависимости от боли
-    extra_info = ""
-    if pain == "Все работает отлично":
-        extra_info = "А оборудование (роутер) давно меняли? Старые роутеры могут резать скорость."
-    else:
-        extra_info = "Понимаю, это неприятно. У нас узлы прямо в вашем районе, поэтому перегрузок нет."
+    # Логика отображения в зависимости от боли
+    ## if st.session_state.client_data['pain'] == 'pain_no':
+        st.markdown(f"""
+        <div class='client-box'><b>Клиент:</b> Да нет, все нормально работает.</div>
+        <div class='manager-box'>
+            <b>Менеджер:</b> Это отлично. А оборудование (роутер) давно меняли? Больше двух лет назад? Просто старые роутеры со временем начинают резать скорость, из-за чего приходится переплачивать за лишний тариф.
+        </div>
+        """, unsafe_allow_html=True)
+    ## else:
+        st.markdown(f"""
+        <div class='client-box'><b>Клиент:</b> Да, бывает, подтупливает вечером.</div>
+        <div class='manager-box'>
+            <b>Менеджер:</b> Понял вас.
+        </div>
+
+        """, unsafe_allow_html=True)
 
     st.markdown(f"""
-    <div class='manager-multiline'>
-        <div class='manager-msg'>
-            <b>🎙 Менеджер:</b><br>
-            {extra_info}<br><br>
-            Мы можем подключить наш хит-тариф: 100/250 Мбит/с + ТВ. 
-            Вместо ваших <b>{old_p} руб.</b>, у нас будет всего <b>650 руб.</b><br>
-            Вы экономите более 2400 рублей в год! При оформлении сегодня — скидка 50% на первый месяц.
-        </div>
+    <div class='manager-box'>
+        <b>Менеджер (Финансовый маркер):</b> И для сверки подскажите: за интернет и телевидение сейчас суммарно сколько в месяц уходит? Больше 700–800 рублей?
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown(f"""
+    <div class='manager-box'>
+        <b>Менеджер (Фиксация и спрос):</b> Я вас услышал. То есть сейчас у вас {st.session_state.client_data['competitor']}, платите около {st.session_state.client_data['price']} рублей, но при этом стабильности по вечерам не хватает (или: оборудование уже старовато)/ То есть вам важно, чтобы интернет не падал, когда дети играют. Правильно я вас понял?
     </div>
     """, unsafe_allow_html=True)
 
-    if st.button("Перейти к возражениям"):
-        st.session_state.step = 'objections'
+    ## if st.button("Перейти к Презентации"):
+        st.session_state.step = 'step3'
         st.rerun()
 
-# 4. ВОЗРАЖЕНИЯ
-elif st.session_state.step == 'objections':
-    st.markdown("<div class='step-header'>4. Отработка возражений</div>", unsafe_allow_html=True)
-    
-    st.markdown("""
-    <div class='client-msg'>
-        <b>👤 Клиент:</b><br>
-        'Мне неохота менять, это опять провода тянуть, ремонт портить...'
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown("""
-    <div class='manager-msg'>
-        <b>🎙 Менеджер:</b><br>
-        Подскажите, вас смущает именно сам процесс переподключения или всё-таки цена?
-    </div>
-    """, unsafe_allow_html=True)
-
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("✅ Только процесс"):
-            st.session_state.step = 'closing'
-            st.rerun()
-    with col2:
-        if st.button("❌ Всё равно дорого"):
-            st.session_state.step = 'closing' # Для упрощения ведем к закрытию
-            st.rerun()
-
-# 5. ЗАКРЫТИЕ
-elif st.session_state.step == 'closing':
-    st.markdown("<div class='step-header'>5. Закрытие сделки</div>", unsafe_allow_html=True)
-    
-    st.markdown("""
-    <div class='manager-msg'>
-        <b>🎙 Менеджер:</b><br>
-        Подведем итоги: тариф зафиксирован, подключение в течение 3 рабочих дней. 
-        Специалист свяжется с вами завтра для согласования времени.
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.write("**Кросс-продажа (Сим-карта):**")
-    if st.button("➕ Предложить сим-карту"):
-        st.session_state.client_info['cross_sell'] = True
-        st.rerun()
-    
-    if st.session_state.client_info['cross_sell']:
-        st.markdown("""
-        <div class='client-msg'>
-            <b>👤 Клиент:</b><br>
-            'Ладно, давайте попробуем.'
-        </div>
-        <div class='manager-msg'>
-            <b>🎙 Менеджер:</b><br>
-            Отлично! Мастер привезет её вместе с договором.
-        </div>
-        """, unsafe_allow_html=True)
-
-    st.divider()
-    st.success("✅ Сделка зафиксирована! Не забудьте напомнить про оплату через приложение EVO Life.")
-    
-    if st.button("🏁 Завершить звонок"):
-        reset_script()
-        st.rerun()
+# ШАГ 3: ПРЕЗЕНТАЦИЯ
+## elif st.session_state.step == 'step3':
+    st.markdown("<div class='step-title'>3
