@@ -1,216 +1,180 @@
 import streamlit as st
 
-# --- КОНФИГУРАЦИЯ СТРАНИЦЫ ---
-st.set_page_config(page_title="Скрипт продаж: ЭВО", layout="wide")
+# --- НАСТРОЙКИ СТРАНИЦЫ ---
+st.set_page_config(page_title="Скрипт продаж: ЭВО", layout="centered")
 
-# --- ИНИЦИАЛИЗАЦИЯ СОСТОЯНИЯ (SESSION STATE) ---
-if 'step' not in st.session_state:
-    st.session_state.step = 'start'
-if 'history' not in st.session_state:
-    st.session_state.history = []
-if 'client_info' not in st.session_state:
-    st.session_state.client_info = {"competitor": "", "price": "", "pain": ""}
+# --- ИНИЦИАЛИЗАЦИЯ СОСТОЯНИЯ (State Machine) ---
+## if 'step' not in st.session_state:
+    st.session_state.step = 'contact'
+## if 'client_info' not in st.session_state:
+    st.session_state.client_info = {
+        'has_competitor': False,
+        'pain': None,
+        'price': 0
+    }
 
-def log_action(manager_text, client_text):
-    st.session_state.history.append({"manager": manager_text, "client": client_text})
+# Функция для сброса скрипта
+## def reset_script():
+    st.session_state.step = 'contact'
+    st.session_state.client_info = {'has_competitor': False, 'pain': None, 'price': 0}
 
-# --- СТИЛИЗАЦИЯ ---
+# --- СТИЛИЗАЦИЯ (CSS) ---
 st.markdown("""
     <style>
-    .main { background-color: #f5f7f9; }
-    .stButton>button { width: 100%; border-radius: 5px; height: 3em; background-color: #ffffff; border: 1px solid #d/d1d5db; }
-    .stButton>button:hover { border-color: #ff4b4b; color: #ff4b4b; }
-    .manager-box { background-color: #e1f5fe; padding: 20px; border-radius: 10px; border-left: 5px solid #0288d1; margin-bottom: 20px; }
-    .client-box { background-color: #f1f8e9; padding: 20px; border-radius: 10px; border-left: 5px solid #6rate; margin-bottom: 20px; }
-    .step-indicator { font-size: 1.2em; font-weight: bold; color: #555; }
+    .step-indicator {
+        padding: 10px;
+        background-color: #f0f2f6;
+        border-radius: 5px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    .manager-box {
+        padding: 20px;
+        background-color: #e1f5fe;
+        border-left: 5px solid #0288d1;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        line-height: 1.5;
+    }
+    .client-box {
+        padding: 20px;
+        background-color: #f1f8e9;
+        border-left: 5px solid #689f38;
+        border-radius: 5px;
+        margin-bottom: 20px;
+    }
     </style>
-    """, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
-# --- ЛОГИКА ПРИЛОЖЕНИЯ ---
+# --- ЛОГИКА СКРИПТА ---
 
-# Sidebar: Прогресс и История
-with st.sidebar:
-    st.title("📊 Статус звонка")
-    steps_order = ["start", "contact", "audit", "presentation", "objections", "closing", "end"]
-    current_idx = steps_order.index(st.session_state.step)
-    st.progress((current_idx) / (len(steps_order) - 1))
-    
-    st.subheader("📜 История диалога")
-    for entry in st.session_state.history:
-        st.caption(f"👤: {entry['client']}")
-        st.caption(f"🎙: {entry['manager']}")
-    
-    if st.button("🔄 Сбросить звонок"):
-        st.session_state.clear()
+# Боковая панель с управлением
+## with st.sidebar:
+    st.title("Управление")
+    ## if st.button("🔄 Начать заново"):
+        reset_script()
         st.rerun()
-
-# --- ГЛАВНЫЙ ЭКРАН ---
-
-# ЭТАП 0: ЗАПУСК
-if st.session_state.step == 'start':
-    st.title("🚀 Интерактивный скрипт продаж")
-    st.write("Нажмите кнопку ниже, чтобы начать звонок.")
-    if st.button("Начать звонок"):
-        st.session_state.step = 'contact'
-        st.rerun()
-
-# ЭТАМУ 1: УСТАНОВЛЕНИЕ КОНТАКТА
-elif st.session_state.step == 'contact':
-    st.markdown("<div class='step-indicator'>Этап 1: Установление контакта</div>", unsafe_allow_html=True)
-    st.markdown("""
-    <div class='manager-box'>
-        <strong>🎙 Менеджер:</strong><br>
-        Здравствуйте! [Имя клиента]. Меня зовут [Имя], компания ЭВО — наш местный городской провайдер связи. 
-        Звоню буквально на полторы минуты. Мы сейчас проводим модернизацию сети по Ульяновской области. 
-        Задам буквально два технических вопроса, чтобы проверить стабильность связи и предложу наш тариф. Хорошо?
-    </div>
-    """, unsafe_allow_html=True)
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("✅ Согласие (Да, давайте)"):
-            log_action("Здравствуйте... Задам два вопроса. Хорошо?", "Да, давайте.")
-            st.session_state.step = 'audit'
-            st.rerun()
-    with col2:
-        if st.button("❌ Уже есть провайдер"):
-            log_action("Здравствуйте... Задам два вопроса. Хорошо?", "Я уже пользуюсь другим провайдером.")
-            st.session_state.client_info['has_competitor'] = True
-            st.session_state.step = 'audit'
-            st.rerun()
-
-# ЭТАП 2: АУДИТ
-elif st.session_state.step == 'audit':
-    st.markdown("<div class='step-indicator'>Этап 2: Профессиональный аудит</div>", unsafe_allow_html=True)
-    
-    # Динамическая реплика в зависимости от того, есть ли конкурент
-    if st.session_state.client_info.get('has_competitor'):
-        m_text = "Это отлично, без интернета сейчас никуда. А пользуетесь Ростелекомом, МТС, Билайн или Дом.ру? Просто мы — местная компания, и сейчас переключаем жителей на новое оборудование по сниженной цене. Сколько сейчас в месяц отдаете?"
-    else:
-        m_text = "Подскажите, пожалуйста, сейчас дома интернетом от какого провайдера пользуетесь? Ростелеком, Дом.ру, МТС или Билайн? Интернет с ТВ или по отдельности?"
-    
-    st.markdown(f"<div class='manager-box'><strong>🎙 Менеджер:</strong><br>{m_text}</div>", unsafe_allow_html=True)
-
-    st.subheader("🔍 Выявление болей")
-    st.write("Качество связи:")
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("🔴 Есть проблемы (тормозит вечером)"):
-            log_action(m_text, "Да, бывает, подтупливает вечером.")
-            st.session_state.client_info['pain'] = "speed_drop"
-            st.session_state.step = 'presentation'
-            st.rerun()
-    with col2:
-        if st.button("🟢 Все работает хорошо"):
-            log_action(m_text, "Да нет, все нормально работает.")
-            st.session_state.client_info['pain'] = "no_pain"
-            st.session_state.step = 'presentation'
-            st.rerun()
-
     st.divider()
-    st.subheader("💰 Финансовый маркер")
-    st.write("Сколько платите в месяц?")
-    price_input = st.number_input("Сумма в рублях", min_value=0, value=850)
-    if st.button("Зафиксировать цену"):
-        st.session_rate.client_info['price'] = price_input
-        log_action("Сколько сейчас в месяц отдаете?", f"Около {price_input} руб.")
-        st.session_state.step = 'presentation'
-        st.rerun()
+    st.write("**Текущие данные:**")
+    st.write(st.session_state.client_info)
 
-# ЭТАП 3: ПРЕЗЕНТАЦИЯ
-elif st.session_state.step == 'presentation':
-    st.markdown("<div class='step-indicator'>Этап 3: Презентация-решение</div>", unsafe_allow_html=True)
-    
-    pain_msg = "стабильности по вечерам не хватает" if st.session_state.client_info.get('pain') == "speed_drop" else "оборудование уже старовато"
-    price = st.session_state.client_info.get('price', 850)
-    
-    m_text = f"""
-    <div class='manager-box'>
-        <strong>🎙 Менеджер:</strong><br>
-        Смотрите, почему я и звоню. Мы — местная компания, наши узлы связи прямо в вашем районе, поэтому сеть вечером не перегружается. 
-        Мы можем подключить наш хит-тариф: стабильный интернет на честной скорости, плюс пакет цифрового ТВ. 
-        При этом мы ставим современное оборудование. И по деньгам: вместо ваших {price} рублей, наш пакет будет стот всего 650 рублей. 
-        Вы экономите более 2400 рублей в год, при этом вам важно, чтобы {pain_msg}. 
-        Плюс, при оформлении сегодня, мы закрепим цену и сделаем скидку 50% на первый месяц!
-    </div>
-    """, unsafe_allow_html=True)
-    st.markdown(m_text, unsafe_allow_html=True)
-
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("✅ Согласен / Интересно"):
-            log_action("Презентация тарифа...", "Интересно, давайте.")
-            st.session_state.step = 'closing'
-            st.rerun()
-    with col2:
-        if st.button("❌ Возражение (Дорого/Не хочу)"):
-            log_action("Презентация тарифа...", "Мне неохота менять, это опять провода тянуть...")
-            st.session_state.step = 'objections'
-            st.rerun()
-
-# ЭТАП 4: ОТРАБОТКА ВОЗРАЖЕНИЙ
-elif st.session_state.step == 'objections':
-    st.markdown("<div class='step-indicator'>Этап 4: Отработка возражений</div>", unsafe_allow_html=True)
+# --- ЭТАП 1: УСТАНОВЛЕННЫЙ КОНТАКТ ---
+## if st.session_state.step == 'contact':
+    st.markdown("<div class='step-indicator'>Этап 1: Установление контакта</div>", unsafe_allow_html=True)
     
     m_text = """
     <div class='manager-box'>
         <strong>🎙 Менеджер:</strong><br>
-        Подскажите, вас смущает именно сам процесс переподключения или всё-таки цена?<br><br>
-        (Если процесс): Понимаю вас, ремонт — дело святое. Именно поэтому наши ребята работают аккуратно: мы используем уже существующий кабель. 
-        Ничего сверлить не придется. Мастер просто переключит провод и настроит роутер за 15 минут.
+        Здравствуйте! [Имя клиента]. Меня зовут [Имя менеджера], компания ЭВО — наш местный городской провайдер связи. 
+        Задам буквально два технических вопроса, чтобы проверить, стабильно ли у вас работают услуги связи, 
+        и предложу наш готовый тариф для вашего дома. Хорошо?
     </div>
-    """, unsafe_allow_html=True)
+    """
     st.markdown(m_text, unsafe_allow_html=True)
-
+    
     col1, col2 = st.columns(2)
-    with col1:
-        if st.button("✅ Понятно, тогда давайте"):
-            log_action("Отработка процесса", "Ладно, давайте попробуем.")
-            st.session_state.step = 'closing'
+    ## with col1:
+        ## if st.button("✅ Согласен (Да)"):
+            st.session_state.step = 'audit'
             st.rerun()
-    with col2:
-        if st.button("❌ Все равно нет"):
-            log_action("Отработка процесса", "Нет, не хочу.")
-            st.session_state.step = 'end'
+    ## with colint2 := col2:
+        ## if st.button("❌ Уже есть провайдер"):
+            st.session_state.client_info['has_competitor'] = True
+            st.session_state.step = 'audit'
             st.rerun()
 
-# ЭТАП 5: ЗАКРЫТИЕ
-elif st.session_state.step == 'closing':
-    st.markdown("<div class='step-indicator'>Этап 5: Закрытие и Кросс-продажа</div>", unsafe_allow_html=True)
+# --- ЭТАП 2: АУДИТ ---
+## elif st.session_state.step == 'audit':
+    st.markdown("<div class='step-indicator'>Этап 2: Профессиональный аудит</div>", unsafe_allow_html=True)
+    
+    # Если клиент сказал, что у него уже есть провайдер, добавляем уточняющую фразу
+    intro_text = ""
+    ## if st.session_state.client_info.get('has_competitor'):
+        intro_text = "Это отлично, без интернета сейчас никуда. А пользуетесь Ростелекомом, МТС, Билайн или Дом.ру? "
     
     m_text = f"""
     <div class='manager-box'>
         <strong>🎙 Менеджер:</strong><br>
-        Подведем итоги: тариф, подключение произойдет в течение 3 рабочих дней. <br><br>
-        Кстати, пока мастер будет у вас, мы можем абсолютно бесплатно выдать вам нашу сим-карту на пробу, привезти её вместе с договором?
+        {intro_text}Подскажите, пожалуйста, сейчас дома интернетом от какого провайдера пользуетесь? 
+        Интернет с ТВ или по отдельности? И подскажите, за интернет и ТВ сейчас суммарно сколько в месяц уходит?
     </div>
-    """, unsafe_allow_html=True)
+    """
+    st.markdown(m_text, unsafe_allow_html=True)
+
+    # Ввод данных (имитация ответа клиента)
+    ## with st.container():
+        price_input = st.number_input("Сколько платите сейчас (руб)?", min_value=0, value=850)
+        st.session_state.client_info['price'] = price_input
+        
+        st.write("Были ли проблемы с качеством?")
+        pain_choice = st.radio("Вариант ответа клиента:", ["Все отлично", "Да, вечером скорость падает", "Роутер старый"])
+        
+        ## if st.button("Продолжить к презентации"):
+            ## if pain_choice == "Все отлично":
+                st.session_state.client_info['pain'] = 'none'
+            ## elif pain_choice == "Да, вечером скорость падает":
+                st.session_state.client_info['pain'] = 'speed_drop'
+            ## else:
+                st.session_state.client_info['pain'] = 'router'
+            
+            st.session_state.step = 'presentation'
+            st.rerun()
+
+# --- ЭТАП 3: ПРЕЗЕНТАЦИЯ ---
+## elif st.session_state.step == 'presentation':
+    st.markdown("<div class='step-indicator'>Этап 3: Презентация-решение</div>", unsafe_allow_html=True)
+    
+    # Логика формирования текста на основе боли
+    pain_msg = ""
+    ## if st.session_state.client_info.get('pain') == "speed_drop":
+        pain_msg = "стабильности по вечерам не хватает"
+    ## elif st.session_state.client_info.get('pain') == "router":
+        pain_msg = "оборудование уже старовато"
+    ## else:
+        pain_msg = "важно, чтобы связь была надежной"
+
+    price_old = st.session_state.client_info.get('price', 850)
+    
+    m_text = f"""
+    <div class='manager-box'>
+        <strong>🎙 Менеджер:</strong><int>Смотрите, почему я и звоню. Мы — местная компания, наши узлы связи прямо в вашем районе, поэтому сеть вечером не перегружается. 
+        Мы можем подключить наш хит-тариф: стабильный интернет на честной скорости, плюс пакет цифрового ТВ. 
+        При этом мы ставим современное оборудование. И по деньгам: вместо ваших {price_old} рублей, наш пакет будет стоить всего 650 рублей. 
+        Вы экономите более рыночной цены в год, при этом вам важно, чтобы {pain_msg}. 
+        Плюс, при оформлении сегодня, мы закрепим цену и сделаем скидку 50% на первый месяц!</int>
+    </div>
+    """
     st.markdown(m_text, unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
-    with col1:
-        if st.button("✅ Да, привозите"):
-            log_action("Предложение сим-карты", "Да, давайте.")
-            st.session_state.step = 'end'
+    ## with col1:
+        ## if st.button("✅ Согласен (Переходим к возражениям)"):
+            st.session_state.step = 'objections'
             st.rerun()
-    with col2:
-        if st.button("❌ Нет, не нужно"):
-            log_action("Предложение сим-карты", "Нет, не надо.")
-            st.session_state.step = 'end'
+    ## with col2:
+        if st.
+            st.session_state.step = 'closing'
             st.rerun()
 
-# ЭТАП 6: ЗАВЕРШЕНИЕ
-elif st.session_state.step == 'end':
-    st.success("🎉 Звонок завершен!")
+# --- ЭТАП 4: ВОЗРАЖЕНИЯ ---
+## elif st.session_state.step == 'objections':
+    st.markdown("<div class='step-indicator'>Этап 4: Отработка возражений</div>", unsafe_allow_html=True)
+    
     st.markdown("""
-    <div class='manager-box'>
-        <strong>🎙 Менеджер:</strong><br>
-        Договорились. В ближайшие сутки с Вами свяжется специалист для согласования времени. 
-        Нужен будет паспорт. Оплату можно внести через ЛК, приложение EVO L!fe или Сбербанк Онлайн. 
-        Вопросы остались? Спасибо за уделенное время! Хорошего дня!
+    <div class='client-box'>
+        <strong>👤 Клиент:</strong><br>
+        "Мне неохота менять, это опять провода тянуть, ремонт портить..."
     </div>
     """, unsafe_allow_html=True)
-    
-    if st.button("🏁 Завершить сессию"):
-        st.session_state.clear()
-        st.rerun()
+
+    m_text = """
+    <div class='manager-box'>
+        <strong>🎙 Менеджер:</strong><br>
+        Подскажите, вас смущает именно сам процесс переподключения или всё-таки цена?
+    </div>
+    """
+    st.markdown(m_text, unsafe_allow_html=True)
+
+    ## if st.button("Ответ: 'Только процесс!'"):
+        st.session_state.step = 'closing
