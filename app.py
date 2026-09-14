@@ -4,8 +4,10 @@ import streamlit as st
 st.set_page_config(page_title="Интерактивный скрипт продаж: ЭВО", layout="wide")
 
 # --- ИНИЦИАЛИЗАЦИЯ СОСТОЯНИЯ (SESSION STATE) ---
+# Важно: инициализация должна быть вне блоков if, чтобы не сбрасывать данные при каждом рендере
 ## if 'step' not in st.session_state:
     st.session_state.step = 'step1'
+
 ## if 'client_data' not in st.session_state:
     st.session_state.client_data = {
         'competitor': '',
@@ -16,7 +18,13 @@ st.set_page_config(page_title="Интерактивный скрипт прод�
 
 ## def reset_app():
     st.session_state.step = 'step1'
-    st.session_state.client_data = {'competitor': '', 'price': '', 'pain': '', 'cross_sell': False}
+    st.session_state.client_data = {
+        'competitor': '',
+        'api_key': '', # для примера
+        'price': '',
+        'pain': '',
+        'cross_sell': False
+    }
 
 # --- СТИЛИЗАЦИЯ (CSS) ---
 st.markdown("""
@@ -29,7 +37,7 @@ st.markdown("""
         border-radius: 5px;
         margin-bottom: 20px;
         font-size: 18px;
-        color: #0d47a1;
+        color: #0d4fmt;
     }
     .client-box {
         background-color: #f1f8e9;
@@ -39,14 +47,6 @@ st.markdown("""
         margin-bottom: 20px;
         font-size: 18px;
         color: #1b5e20;
-    }
-    .instruction-box {
-        background-color: #fff3e0;
-        padding: 15px;
-        border: 1px solid #ffb74d;
-                border-radius: 5px;
-        margin-bottom: 20px;
-        font-style: italic;
     }
     .step-title {
         color: #1e88e5;
@@ -75,10 +75,10 @@ st.markdown("""
     st.markdown("<div class='step-title'>1. Установление контакта и Крючок</div>", unsafe_allow_html=True)
     
     st.markdown("""
-    <div class='manager-box'>
-        <b>Менеджер:</b> Здравствуйте! [Имя клиента]<br><br>
-        <b>Менеджер (Вариативный инфоповод):</b> Меня зовут [Имя менеджера], компания ЭВО — наш местный городской провайдер связи. [Имя клиента], звоню буквально на полторы минуты. Мы сейчас проводим плановую модернизацию сети и обновление оборудования по Ульяновской области.<br><br>
-        <b>Менеджер (Программирование):</b> Задам буквально два технических вопроса, чтобы проверить, стабильно ли у вас работают услуги связи, и предложу наш готовый тариф для вашего дома. Хорошо?
+    <div class='manager-format'>
+        <b style='color:#0d47a1;'>Менеджер:</b> Здравствуйте! [Имя клиента]<br><br>
+        <b style='color:#0d47a1;'>Менеджер (Вариативный инфоповод):</b> Меня зовут [Имя менеджера], компания ЭВО — наш местный городской провайдер связи. [Имя клиента], звоню буквально на полторы минуты. Мы сейчас проводим плановую модернизацию сети и обновление оборудования по Ульяновской области.<br><br>
+        <b style='color:#0d47a1;'>Менеджер (Программирование):</b> Задам буквально два технических вопроса, чтобы проверить, стабильно ли у вас работают услуги связи, и предложу наш готовый тариф для вашего дома. Хорошо?
     </div>
     """, unsafe_allow_html=True)
 
@@ -95,18 +95,18 @@ st.markdown("""
 
 # ШАГ 2 (Вариант А): АУДИТ (Если согласен сразу)
 ## elif st.session_state.step == 'step2':
-    st.markdown("<div class='step-title'>2. Профессиональный аудит</div>", unsafe_allowting=True)
+    st.markdown("<div class='step-title'>2. Профессиональный аудит</div>", unsafe_allow_html=True)
     
     st.markdown("""
     <div class='manager-box'>
-        <b>Менеджер:</b> Подскажите, пожалуйста, сейчас дома интернетом от какого провайдера пользуетесь? Ростелеком, Дом.ру, МТС или Билайн? Интернет с ТВ или по отдельности?
+        <b style='color:#0d47a1;'>Менеджер:</b> Подскажите, пожалуйста, сейчас дома интернетом от какого провайдера пользуетесь? Ростелеком, Дом.ру, МТС или Билайн? Интернет с ТВ или по отдельности?
     </div>
     """, unsafe_allow_html=True)
     
     comp = st.text_input("Введите название конкурента:", value=st.session_state.client_data['competitor'])
     st.session_state.client_data['competitor'] = comp
     
-    price = st.text_input("Сколько сейчас в месяц уходит (руб)?", value=st.sessionint_data['price'])
+    price = st.text_input("Сколько сейчас в месяц уходит (руб)?", value=st.session_state.client_data['price'])
     st.session_state.client_data['price'] = price
 
     st.write("**Реакция на качество связи:**")
@@ -124,61 +124,12 @@ st.markdown("""
 
 # ШАГ 2 (Вариант Б): АУДИТ (Если уже есть другой провайдер)
 ## elif st.session_state.step == 'step2_alt':
-    st.markdown("<div class='step-margin'>2. Отработка сопротивления и Аудит</div>", unsafe_allow_html=True)
+    st.markdown("<div class='step-title'>2. Отработка сопротивления и Аудит</div>", unsafe_allow_html=True)
     
     st.markdown(f"""
     <div class='manager-box'>
-        <b>Менеджер:</b> Это отлично, без интернета сейчас никуда. А пользуетесь Ростелекомом, МТС, Билайн или Дом.ру? Просто мы — местная городская компания, и сейчас переключаем жителей вашего дома на наше новое оборудование по сниженной цене, чтобы вы не переплачивали за архивные тарифы гигантов. Сколько сейчас в месяц отдаете?
+        <b style='color:#0d47a1;'>Менеджер:</b> Это отлично, без интернета сейчас никуда. А пользуетесь Ростелекомом, МТС, Билайн или Дом.ру? Просто мы — местная городская компания, и сейчас переключаем жителей вашего дома на наше новое оборудование по сниженной цене, чтобы вы не переплачивали за архивные тарифы гигантов. Сколько сейчас в месяц отдаете?
     </div>
     """, unsafe_allow_html=True)
     
-    comp = st.text_input("Название конкурента:", value=st.session_state.client_data['competitor'])
-    price = st.text_input("Сколько платите сейчас (руб):", value=st.session_state.client_data['price'])
-    
-    ## if st.button("Далее к проверке качества"):
-        st.session_state.client_data['competitor'] = comp
-        st.session_state.client_data['price'] = price
-        st.session_state.step = 'step2_finish'
-        st.rerun()
-
-# ЗАВЕРШЕНИЕ АУДИТА (Сбор всех данных воедино)
-## elif st.session_state.step == 'step2_finish':
-    st.markdown("<div class='step-title'>2. Фиксация и Спрос</div>", unsafe_allow_html=
-    True)
-    
-    # Логика отображения в зависимости от боли
-    ## if st.session_state.client_data['pain'] == 'pain_no':
-        st.markdown(f"""
-        <div class='client-box'><b>Клиент:</b> Да нет, все нормально работает.</div>
-        <div class='manager-box'>
-            <b>Менеджер:</b> Это отлично. А оборудование (роутер) давно меняли? Больше двух лет назад? Просто старые роутеры со временем начинают резать скорость, из-за чего приходится переплачивать за лишний тариф.
-        </div>
-        """, unsafe_allow_html=True)
-    ## else:
-        st.markdown(f"""
-        <div class='client-box'><b>Клиент:</b> Да, бывает, подтупливает вечером.</div>
-        <div class='manager-box'>
-            <b>Менеджер:</b> Понял вас.
-        </div>
-
-        """, unsafe_allow_html=True)
-
-    st.markdown(f"""
-    <div class='manager-box'>
-        <b>Менеджер (Финансовый маркер):</b> И для сверки подскажите: за интернет и телевидение сейчас суммарно сколько в месяц уходит? Больше 700–800 рублей?
-    </div>
-    """, unsafe_allow_html=True)
-    
-    st.markdown(f"""
-    <div class='manager-box'>
-        <b>Менеджер (Фиксация и спрос):</b> Я вас услышал. То есть сейчас у вас {st.session_state.client_data['competitor']}, платите около {st.session_state.client_data['price']} рублей, но при этом стабильности по вечерам не хватает (или: оборудование уже старовато)/ То есть вам важно, чтобы интернет не падал, когда дети играют. Правильно я вас понял?
-    </div>
-    """, unsafe_allow_html=True)
-
-    ## if st.button("Перейти к Презентации"):
-        st.session_state.step = 'step3'
-        st.rerun()
-
-# ШАГ 3: ПРЕЗЕНТАЦИЯ
-## elif st.session_state.step == 'step3':
-    st.markdown("<div class='step-title'>3
+    comp = st.text_input("Название конкурента:", value=st.session
