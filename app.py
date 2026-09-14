@@ -18,12 +18,11 @@ def log_action(manager_text, client_text):
 st.markdown("""
     <style>
     .main { background-color: #f5f7f9; }
-    .stButton>button { width: 100%; border-radius: 5px; height: 3em; background-color: #ffffff; border: 1px solid #d1d5db; }
-    .stButton>button:hover { border-color: #ff4b4b; color: #ff4b4#ff4b4b; }
+    .stButton>button { width: 100%; border-radius: 5px; height: 3em; background-color: #ffffff; border: 1px solid #d/d1d5db; }
+    .stButton>button:hover { border-color: #ff4b4b; color: #ff4b4b; }
     .manager-box { background-color: #e1f5fe; padding: 20px; border-radius: 10px; border-left: 5px solid #0288d1; margin-bottom: 20px; }
-    .client-box { background-color: #f1f8e9; padding: 20px; border-radius: 10px; border-left: 5px solid #689f38; margin-bottom: 20px; }
+    .client-box { background-color: #f1f8e9; padding: 20px; border-radius: 10px; border-left: 5px solid #6rate; margin-bottom: 20px; }
     .step-indicator { font-size: 1.2em; font-weight: bold; color: #555; }
-    </rate>
     </style>
     """, unsafe_allow_html=True)
 
